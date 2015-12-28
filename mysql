@@ -1,0 +1,117 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using MySql.Data;
+using MySql.Data.MySqlClient;
+using MySql.Data.Types;
+namespace sql
+{
+
+    public partial class Form1 : Form
+    {
+        // bağlantı nesnesi
+        MySqlConnection baglanti = new MySqlConnection("Server=85.95.254.223;Database=dotnet;Uid=admin;Pwd='sananeali123';");
+          
+        void vericek()
+          {
+             string komut = "select * from kullanici";
+            MySqlDataAdapter da = new MySqlDataAdapter(komut, baglanti);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            dataGridView1.DataSource = dt;
+          }
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (textBox1.Text == "")
+            {
+                MessageBox.Show("K.Adı Boş Bırakılamaz!!!");
+            }
+            else if (textBox2.Text == "")
+            {
+                MessageBox.Show("Şifre Alanı Boş Bırakılamaz!!!");
+          
+            }
+            else
+            {
+
+           
+
+
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = baglanti;
+            cmd.CommandText = "select * from kullanici where kadi=" + "'" + textBox1.Text + "'";
+            baglanti.Open();
+            MySqlDataReader dr = cmd.ExecuteReader();
+            // AYNI VERİ KONTROLÜ
+            if (dr.Read()) // AYNI VERİDEN VAR İSE YAPILACAKLAR
+            {
+                MessageBox.Show("K.Adı Farklı Bir Kişi Tarafından Kullanılmaktadır!!!");
+                baglanti.Close();
+            }
+            else // AYNI VERİDEN YOK İSE YAPILACAKLAR
+            {
+                // Veri Ekleme
+                dr.Close();
+                string komut = "insert into kullanici(kadi,sifre,tarihsaat) values('" + textBox1.Text + "', '" + textBox2.Text + "', '" + dateTimePicker1.Value.Day + "')";
+                MySqlCommand kmt = new MySqlCommand(komut, baglanti);
+                kmt.ExecuteNonQuery();
+                vericek(); // datagriedview yenileme
+                MessageBox.Show("Veri Ekleme İşlemi Başarılı", "Veri Ekleme");
+                baglanti.Close();
+            }
+
+
+            }
+
+
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Veri Çekme ve DataGriedview Gösterme
+            string komut = "select * from kullanici";
+            baglanti.Open();
+            MySqlDataAdapter da = new MySqlDataAdapter(komut, baglanti);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            dataGridView1.DataSource = dt;
+            baglanti.Close();
+        }
+      
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            // VT Güncelleme
+            baglanti.Open();
+            string komut = "update kullanici set kadi=" + "'" + textBox1.Text + "'" + ",sifre=" + "'" + textBox2.Text + "'" + ",tarihsaat=" +"'"+ dateTimePicker1.Value.Date.ToString() +"'" + " where kno="+"'"+dataGridView1.CurrentRow.Cells[0].Value.ToString() +"'";
+            MySqlCommand kmt = new MySqlCommand(komut, baglanti);
+            kmt.ExecuteNonQuery();
+            MessageBox.Show("Güncelleme İşlemi Başarılı","Güncelleme İşlemi");
+            vericek();
+            baglanti.Close();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+           // Silme İşlemi
+            baglanti.Open();
+            string komut = "delete from kullanici where kno=" + "'" + dataGridView1.CurrentRow.Cells[0].Value.ToString() + "'";
+            MySqlCommand kmt = new MySqlCommand(komut, baglanti);
+            kmt.ExecuteNonQuery();
+            MessageBox.Show("Silme İşlemi Başarılı","Silme İşlemi");
+            vericek();
+            baglanti.Close();
+
+        }
+
+    }
+}
